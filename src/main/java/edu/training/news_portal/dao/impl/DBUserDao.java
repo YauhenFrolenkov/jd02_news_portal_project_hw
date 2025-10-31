@@ -73,84 +73,90 @@ public class DBUserDao implements UserDao {
 		}
 	}
 
-	private static final String INSERT_USER_SQL = "INSERT INTO users (email, password, roles_id, user_status_id, date_registration) VALUES (?, ?, ?, ?, ?)";
-	private static final String INSERT_USER_DETAILES_SQL = "INSERT INTO user_details (users_id, name, surname) VALUES (?, ?, ?)";
-
 	@Override
 	public boolean registration(RegistrationInfo regInfo) throws DaoException {
+	    Connection connection = null;
 
-		Connection connection = null;
+	    try {
+	        connection = pool.takeConnection();
+	        connection.setAutoCommit(false);
+	       
+	        String hashedPassword = hashPassword(regInfo.getPassword());  // 1. Хэшируем пароль
 
-		try {
-			connection = pool.takeConnection();
-			connection.setAutoCommit(false);
-			System.out.println("Соединение получено, начинаем регистрацию...");
+	        int userId = insertUser(connection, regInfo, hashedPassword); // 2. Вставляем пользователя и получаем ID
 
-			try (PreparedStatement psUser = connection.prepareStatement(INSERT_USER_SQL,
-					PreparedStatement.RETURN_GENERATED_KEYS);
-					PreparedStatement psDetails = connection.prepareStatement(INSERT_USER_DETAILES_SQL)) {
+	        insertUserDetails(connection, userId, regInfo); // 3. Вставляем детали пользователя
 
-				String hashedPassword = BCrypt.hashpw(regInfo.getPassword(), BCrypt.gensalt(12));
-				System.out.println("Пароль захэширован");
+	        connection.commit();  // 4. Фиксируем транзакцию
+	       
+	        return true;
 
-				psUser.setString(1, regInfo.getEmail());
-				psUser.setString(2, hashedPassword);
-				psUser.setInt(3, UserReferenceData.ROLE_USER_ID);
-				psUser.setInt(4, UserReferenceData.USER_STATUS_ACTIVE_ID);
-				psUser.setDate(5, new java.sql.Date(System.currentTimeMillis()));
+	    } catch (SQLException e) {
+	        rollbackQuietly(connection);
+	         throw new DaoException("Ошибка при регистрации пользователя", e);
 
-				int affectedRows = psUser.executeUpdate();
-				if (affectedRows == 0) {
-					throw new DaoException("Не удалось вставить пользователя, нет затронутых строк.");
-				}
-				 System.out.println("Пользователь вставлен, строк: " + affectedRows);
+	    } finally {
+	        if (connection != null) {
+	            try {
+	                connection.setAutoCommit(true);
+	                connection.close(); // Соединение закрыто и autoCommit восстановлен	                
+	            } catch (SQLException e) {
+	                throw new DaoException("Ошибка при закрытии соединения", e);
+	            }
+	        }
+	    }
+	}
 
-				int userId;
-				try (ResultSet rs = psUser.getGeneratedKeys()) {
-					if (!rs.next()) {
-						throw new DaoException("Не удалось получить ID пользователя.");
-					}
-					userId = rs.getInt(1);
-					System.out.println("Получен userId: " + userId);
-				}
+	private String hashPassword(String password) {
+		String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
+		return hashedPassword;
+	}
 
-				psDetails.setInt(1, userId);
-				psDetails.setString(2, regInfo.getName());
-				psDetails.setString(3, regInfo.getSurname());
-				psDetails.executeUpdate();
-				System.out.println("user_details вставлен");
+	private static final String INSERT_USER_SQL = "INSERT INTO users (email, password, roles_id, user_status_id, date_registration) VALUES (?, ?, ?, ?, ?)";
 
-				connection.commit();
-				 System.out.println("Транзакция зафиксирована");
-				return true;
+	private int insertUser(Connection connection, RegistrationInfo regInfo, String hashedPassword) throws SQLException, DaoException {
+		try (PreparedStatement ps = connection.prepareStatement(INSERT_USER_SQL, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
-			} catch (SQLException e) {
-				if (connection != null) {
-					try {
-						connection.rollback();
-						 System.out.println("Откат транзакции");
-					} catch (SQLException ex) {
-						throw new DaoException("Ошибка при откате транзакции", ex);
-					}
-				}
-				throw new DaoException("Ошибка при регистрации пользователя", e);
+			ps.setString(1, regInfo.getEmail());
+			ps.setString(2, hashedPassword);
+			ps.setInt(3, UserReferenceData.ROLE_USER_ID);
+			ps.setInt(4, UserReferenceData.USER_STATUS_ACTIVE_ID);
+			ps.setDate(5, new java.sql.Date(System.currentTimeMillis()));
 
-			}
-		} catch (SQLException e) {
-			throw new DaoException(e);
-
-		} finally {
-			if (connection != null) {
-				try {
-					connection.setAutoCommit(true);
-					connection.close();
-				} catch (SQLException e) {
-					throw new DaoException(e);
-				}
+			int affectedRows = ps.executeUpdate();
+			if (affectedRows == 0) {
+				throw new DaoException("Не удалось вставить пользователя, нет затронутых строк.");
 			}
 
+			try (ResultSet rs = ps.getGeneratedKeys()) {
+				if (!rs.next()) {
+					throw new DaoException("Не удалось получить ID пользователя.");
+				}
+				int userId = rs.getInt(1);
+				return userId;
+			}
 		}
+	}
 
+	private static final String INSERT_USER_DETAILES_SQL = "INSERT INTO user_details (users_id, name, surname) VALUES (?, ?, ?)";
+
+	private void insertUserDetails(Connection connection, int userId, RegistrationInfo regInfo) throws SQLException {
+		try (PreparedStatement ps = connection.prepareStatement(INSERT_USER_DETAILES_SQL)) {
+			ps.setInt(1, userId);
+			ps.setString(2, regInfo.getName());
+			ps.setString(3, regInfo.getSurname());
+			ps.executeUpdate();
+		}
+	}
+	
+	private void rollbackQuietly(Connection connection) throws DaoException {
+	    if (connection != null) {
+	        try {
+	            connection.rollback();	            
+	        } catch (SQLException ex) {
+	        	throw new DaoException("Ошибка при откате транзакции", ex);
+	        }
+	    }
 	}
 
 	private Optional<User> mapRowToUser(ResultSet rs) throws SQLException {
