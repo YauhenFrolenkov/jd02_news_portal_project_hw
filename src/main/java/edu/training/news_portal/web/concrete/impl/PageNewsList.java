@@ -1,8 +1,6 @@
 package edu.training.news_portal.web.concrete.impl;
 
 import java.io.IOException;
-import java.util.List;
-
 import edu.training.news_portal.beans.News;
 import edu.training.news_portal.beans.Page;
 import edu.training.news_portal.service.NewsService;

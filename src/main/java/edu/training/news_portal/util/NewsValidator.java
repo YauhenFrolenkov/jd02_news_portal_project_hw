@@ -9,12 +9,21 @@ import edu.training.news_portal.beans.News;
 public class NewsValidator {
 	private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT);
+	
+	private static NewsValidator instance;
 
-    private NewsValidator() {
+	private NewsValidator() {
     	
     } 
+    
+    public static NewsValidator getInstance() {
+        if (instance == null) {
+            instance = new NewsValidator();            
+        }
+        return instance;
+    }
 
-    public static boolean isValid(News news) {
+    public boolean isValid(News news) {
         if (news == null) return false;
 
         return isValidTitle(news.getTitle()) &&
@@ -24,15 +33,15 @@ public class NewsValidator {
                isValidStatusId(news.getStatusId());
     }
 
-    public static boolean isValidTitle(String title) {
+    public boolean isValidTitle(String title) {
         return title != null && !title.isBlank() && title.length() <= 200;
     }
 
-    public static boolean isValidBrief(String brief) {
+    public boolean isValidBrief(String brief) {
         return brief != null && !brief.isBlank() && brief.length() <= 500;
     }
 
-    public static boolean isValidContentPath(String contentPath) {
+    public boolean isValidContentPath(String contentPath) {
         return contentPath != null && !contentPath.isBlank();
     }
 
@@ -48,7 +57,7 @@ public class NewsValidator {
         }
     }
 
-    public static boolean isValidStatusId(int statusId) {
+    public boolean isValidStatusId(int statusId) {
         
         return statusId == 1 || statusId == 2;
     }

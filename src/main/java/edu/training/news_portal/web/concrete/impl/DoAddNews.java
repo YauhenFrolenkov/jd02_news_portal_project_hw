@@ -30,11 +30,11 @@ public class DoAddNews implements Command {
                 .build();
 
         try {
-            if (!NewsValidator.isValid(news)) {
+        	if (!NewsValidator.getInstance().isValid(news)) {
                 response.sendRedirect("NewsPortalController?command=page_add_news&error=true");
                 return;
             }
-
+            
             newsService.addNews(news);
             response.sendRedirect("NewsPortalController?command=page_news_list&added=true");
 

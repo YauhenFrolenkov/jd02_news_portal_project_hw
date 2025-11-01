@@ -10,33 +10,39 @@ import edu.training.news_portal.dao.UserDao;
 import edu.training.news_portal.dao.util.UserReferenceData;
 import edu.training.news_portal.service.ServiceException;
 import edu.training.news_portal.service.UserSecurity;
+import edu.training.news_portal.util.NewsValidator;
 import edu.training.news_portal.util.RegistrationValidator;
 
 public class NewsPortalUserSecurity implements UserSecurity {
 
 	private final UserDao userDao = DaoProvider.getInstance().getUserDao();
+	private final RegistrationValidator validator;
+	
+	public NewsPortalUserSecurity(RegistrationValidator validator) {
+        this.validator = validator;       
+    }
 
 	@Override
 	public Optional<User> signIn(String email, String password) throws ServiceException {
 
 		if (email == null || password == null || email.isBlank() || password.isBlank()) {
-			throw new ServiceException("Email и пароль не могут быть пустыми");
+			throw new ServiceException("Email and password cannot be empty");
 		}
 
 		try {
 			Optional<User> maybeUser = userDao.checkControl(email, password);
 
-			User user = maybeUser.orElseThrow(() -> new ServiceException("Пользователь не найден"));
+			User user = maybeUser.orElseThrow(() -> new ServiceException("User not found"));
 
 			
 			if (user.getStatusId() == UserReferenceData.USER_STATUS_BLOCKED_ID) {
-				throw new ServiceException("Пользователь заблокирован");
+				throw new ServiceException("User is blocked");
 			}
 
 			return Optional.of(user);
 
 		} catch (DaoException e) {
-			throw new ServiceException("Ошибка при входе пользователя", e);
+			throw new ServiceException("User login error", e);
 		}
 	}
 
@@ -45,12 +51,8 @@ public class NewsPortalUserSecurity implements UserSecurity {
 
 		try {
 
-			if (!RegistrationValidator.isValid(regInfo)) {
-				System.out.println("Email valid: " + RegistrationValidator.isValidEmail(regInfo.getEmail()));
-				System.out.println("Password valid: " + RegistrationValidator.isValidPassword(regInfo.getPassword()));
-				System.out.println("Name valid: " + RegistrationValidator.isValidName(regInfo.getName()));
-				System.out.println("Surname valid: " + RegistrationValidator.isValidSurname(regInfo.getSurname()));
-				throw new ServiceException("Некорректные данные при регистрации");
+			if (!validator.isValid(regInfo)) {
+				throw new ServiceException("Invalid registration data");
 			}
 
 			return userDao.registration(regInfo);
@@ -68,7 +70,7 @@ public class NewsPortalUserSecurity implements UserSecurity {
 	    try {
 	        return userDao.findByEmail(email); 
 	    } catch (DaoException e) {
-	        throw new ServiceException("Ошибка при поиске пользователя по email", e);
+	        throw new ServiceException("Error searching for user by email", e);
 	    }
 	}
 

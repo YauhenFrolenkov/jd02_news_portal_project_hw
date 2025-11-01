@@ -21,7 +21,7 @@ public class NewsReferenceData {
             STATUS_DRAFT_ID = getId(connection, "SELECT id FROM news_status WHERE title = 'draft'");
             STATUS_PUBLISHED_ID = getId(connection, "SELECT id FROM news_status WHERE title = 'published'");           
         } catch (SQLException e) {
-            throw new DaoRuntimeException("Ошибка при инициализации NewsReferenceData", e);
+            throw new DaoRuntimeException("Error initializing NewsReferenceData.", e);
         }
     }
 
@@ -31,7 +31,7 @@ public class NewsReferenceData {
             if (rs.next()) {
                 return rs.getInt(1);
             } else {
-                throw new SQLException("Не найдено значение по запросу: " + sql);
+                throw new SQLException("No value found for query: " + sql);
             }
         }
     }

@@ -53,7 +53,7 @@ public class RememberMeFilter extends HttpFilter implements Filter {
 							}
 						} catch (ServiceException e) {
 							throw new ServletException(
-									"Ошибка в RememberMeFilter при поиске пользователя по email: " + email, e);
+									"Error in RememberMeFilter while searching for user by email: " + email, e);
 						}
 						break;
 					}

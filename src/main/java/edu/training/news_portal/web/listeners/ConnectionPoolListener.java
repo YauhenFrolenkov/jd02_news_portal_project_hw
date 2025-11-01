@@ -23,7 +23,7 @@ public class ConnectionPoolListener implements ServletContextListener {
 			ConnectionPool.getFirstInstance("jdbc:mysql://localhost:3306/nova_news_6?useSSL=false", "root", "1234", 5);
 
 		} catch (SQLException | ClassNotFoundException e) {
-			String errorMessage = "Ошибка инициализации пула соединений: " + e;
+			String errorMessage = "Connection pool initialization error. " + e;
 			context.setAttribute("initError", errorMessage);
 			throw new DaoRuntimeException(errorMessage, e);
 
@@ -34,7 +34,7 @@ public class ConnectionPoolListener implements ServletContextListener {
 		try {
 			ConnectionPool.getInstance().close();
 		} catch (SQLException e) {
-			throw new DaoRuntimeException("Ошибка при закрытии пула соединений", e);
+			throw new DaoRuntimeException("Error while closing the connection pool.", e);
 
 		}
 	}

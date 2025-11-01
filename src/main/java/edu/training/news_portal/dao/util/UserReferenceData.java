@@ -29,7 +29,7 @@ public class UserReferenceData {
 
 			
 		} catch (SQLException e) {
-			throw new DaoRuntimeException("Ошибка при инициализации", e);
+			throw new DaoRuntimeException("Initialization error.", e);
 		}
 	}
 
@@ -38,7 +38,7 @@ public class UserReferenceData {
 			if (rs.next()) {
 				return rs.getInt(1);
 			} else {
-				throw new SQLException("Не найдено значение по запросу: " + sql);
+				throw new SQLException("No value found for query: " + sql);
 			}
 		}
 	}

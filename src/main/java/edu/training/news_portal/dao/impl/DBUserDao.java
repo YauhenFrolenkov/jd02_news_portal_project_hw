@@ -42,7 +42,7 @@ public class DBUserDao implements UserDao {
 				return mapRowToUser(rs);
 			}
 		} catch (SQLException e) {
-			throw new DaoException("Ошибка при проверке пользователя", e);
+			throw new DaoException("Error while verifying user", e);
 		}
 	}
 
@@ -51,7 +51,7 @@ public class DBUserDao implements UserDao {
 			String hashedPassword = rs.getString("password");
 			return BCrypt.checkpw(password, hashedPassword);
 		} catch (SQLException e) {
-			throw new DaoRuntimeException("Ошибка при получении пароля из ResultSet", e);
+			throw new DaoRuntimeException("Error while retrieving password from ResultSet", e);
 		}
 	}
 
@@ -93,7 +93,7 @@ public class DBUserDao implements UserDao {
 
 	    } catch (SQLException e) {
 	        rollbackQuietly(connection);
-	         throw new DaoException("Ошибка при регистрации пользователя", e);
+	         throw new DaoException("Error during user registration", e);
 
 	    } finally {
 	        if (connection != null) {
@@ -101,7 +101,7 @@ public class DBUserDao implements UserDao {
 	                connection.setAutoCommit(true);
 	                connection.close(); // Соединение закрыто и autoCommit восстановлен	                
 	            } catch (SQLException e) {
-	                throw new DaoException("Ошибка при закрытии соединения", e);
+	                throw new DaoException("Error while closing the connection", e);
 	            }
 	        }
 	    }
@@ -125,12 +125,12 @@ public class DBUserDao implements UserDao {
 
 			int affectedRows = ps.executeUpdate();
 			if (affectedRows == 0) {
-				throw new DaoException("Не удалось вставить пользователя, нет затронутых строк.");
+				throw new DaoException("Failed to insert user, no rows affected");
 			}
 
 			try (ResultSet rs = ps.getGeneratedKeys()) {
 				if (!rs.next()) {
-					throw new DaoException("Не удалось получить ID пользователя.");
+					throw new DaoException("Failed to retrieve user ID");
 				}
 				int userId = rs.getInt(1);
 				return userId;
@@ -154,7 +154,7 @@ public class DBUserDao implements UserDao {
 	        try {
 	            connection.rollback();	            
 	        } catch (SQLException ex) {
-	        	throw new DaoException("Ошибка при откате транзакции", ex);
+	        	throw new DaoException("Transaction rollback error", ex);
 	        }
 	    }
 	}

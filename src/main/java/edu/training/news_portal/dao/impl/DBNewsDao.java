@@ -43,7 +43,7 @@ public class DBNewsDao implements NewsDao {
 			}
 
 		} catch (SQLException e) {
-			throw new DaoException("Ошибка при получении топ-новостей", e);
+			throw new DaoException("Error while retrieving top news", e);
 		}
 		return newsList;
 
@@ -62,7 +62,7 @@ public class DBNewsDao implements NewsDao {
 			}
 
 		} catch (SQLException e) {
-			throw new DaoException("Ошибка при получении всех новостей", e);
+			throw new DaoException("Error while retrieving all news", e);
 		}
 		return newsList;
 	}
@@ -90,7 +90,7 @@ public class DBNewsDao implements NewsDao {
 			}
 
 		} catch (SQLException e) {
-			throw new DaoException("Ошибка при получении новости по id", e);
+			throw new DaoException("Error while retrieving news by ID", e);
 		}
 	}
 
@@ -113,7 +113,7 @@ public class DBNewsDao implements NewsDao {
 
 				int affectedRows = ps.executeUpdate();
 				if (affectedRows == 0) {
-					throw new DaoException("Не удалось добавить новость, нет затронутых строк.");
+					throw new DaoException("Failed to add news — no rows affected");
 				}
 
 				try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -126,15 +126,8 @@ public class DBNewsDao implements NewsDao {
 			con.commit();
 
 		} catch (SQLException e) {
-
-			if (con != null) {
-				try {
-					con.rollback();
-				} catch (SQLException ex) {
-					throw new DaoException("Ошибка при откате транзакции", ex);
-				}
-			}
-			throw new DaoException("Ошибка при добавлении новости", e);
+			rollbackQuietly(con);
+			throw new DaoException("Error while adding news.", e);
 		} finally {
 			if (con != null) {
 				try {
@@ -169,20 +162,14 @@ public class DBNewsDao implements NewsDao {
 
 				int affectedRows = ps.executeUpdate();
 				if (affectedRows == 0) {
-					throw new DaoException("Не удалось обновить новость, нет затронутых строк.");
+					throw new DaoException("Failed to update news — no rows affected");
 				}
 			}
 			con.commit();
 
 		} catch (SQLException e) {
-			if (con != null) {
-				try {
-					con.rollback();
-				} catch (SQLException ex) {
-					throw new DaoException("Ошибка при откате транзакции", ex);
-				}
-			}
-			throw new DaoException("Ошибка при обновлении новости", e);
+			rollbackQuietly(con);
+			throw new DaoException("Error while updating news.", e);
 		} finally {
 			if (con != null) {
 				try {
@@ -195,7 +182,7 @@ public class DBNewsDao implements NewsDao {
 		}
 
 	}
-
+	
 	private static final String DELETE_NEWS_SQL = "DELETE FROM news WHERE idnews=?";
 
 	@Override
@@ -212,19 +199,13 @@ public class DBNewsDao implements NewsDao {
 
 				int affectedRows = ps.executeUpdate();
 				if (affectedRows == 0) {
-					throw new DaoException("Не удалось удалить новость, нет затронутых строк.");
+					throw new DaoException("Failed to update news — no rows affected.");
 				}
 			}
 
 		} catch (SQLException e) {
-			if (con != null) {
-				try {
-					con.rollback();
-				} catch (SQLException ex) {
-					throw new DaoException("Ошибка при откате транзакции", ex);
-				}
-			}
-			throw new DaoException("Ошибка при удалении новости", e);
+			rollbackQuietly(con);
+			throw new DaoException("Error while deleting news", e);
 		} finally {
 			if (con != null) {
 				try {
@@ -253,7 +234,7 @@ public class DBNewsDao implements NewsDao {
 	            }
 
 	        } catch (SQLException e) {
-	            throw new DaoException("Ошибка при подсчёте новостей", e);
+	            throw new DaoException("Error while counting news", e);
 	        }
 	}
 	
@@ -274,7 +255,7 @@ public class DBNewsDao implements NewsDao {
             }
 
         } catch (SQLException e) {
-            throw new DaoException("Ошибка при получении страницы новостей", e);
+            throw new DaoException("Error while retrieving news page", e);
         }
         return newsList;
 	}
@@ -293,15 +274,23 @@ public class DBNewsDao implements NewsDao {
 	private Optional<String> readContentFromFile(String filePath) {
 	    try (InputStream is = getClass().getClassLoader().getResourceAsStream("news_files/" + filePath)) {
 	        if (is == null) {
-	            throw new DaoRuntimeException("Файл не найден: " + filePath);
+	            throw new DaoRuntimeException("File not found: " + filePath);
 	        }
 	        String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 	        return Optional.of(content);
 	    } catch (IOException e) {
-	        throw new DaoRuntimeException("Ошибка при чтении файла: " + filePath, e);
+	        throw new DaoRuntimeException("Error reading file: " + filePath, e);
 	    }
 	}
-
 	
-
+	private void rollbackQuietly(Connection connection) throws DaoException {
+	    if (connection != null) {
+	        try {
+	            connection.rollback();	            
+	        } catch (SQLException ex) {
+	        	throw new DaoException("Transaction rollback error", ex);
+	        }
+	    }
+	}
+	
 }

@@ -15,16 +15,21 @@ import edu.training.news_portal.util.NewsValidator;
 public class NewsServiceImpl implements NewsService {
 	
 	private final NewsDao newsDao = DaoProvider.getInstance().getNewsDao();
+	private final NewsValidator validator;
 	
 	private final int DEFAULT_SIZE = 9;
     private final int MAX_SIZE = 50;
     private final int MAX_TOP_NEWS = 10;
+    
+    public NewsServiceImpl(NewsValidator validator) {
+        this.validator = validator;       
+    }
 
 	@Override
 	public List<News> takeTopNews(int count) throws ServiceException {
 		
 		 if (count <= 0 || count > MAX_TOP_NEWS) {
-	            throw new ServiceException("Недопустимое количество топ-новостей: " + count);
+	            throw new ServiceException("Invalid number of top news items: " + count);
 	     }
 		
 		try {
@@ -46,7 +51,7 @@ public class NewsServiceImpl implements NewsService {
 	@Override
 	public Optional<News> findById(int id) throws ServiceException {
 		if (id <= 0) {
-            throw new ServiceException("ID новости должен быть положительным");
+            throw new ServiceException("News ID must be positive.");
         }
 		   try {
         	Optional<News> newsOpt = newsDao.findById(id); 
@@ -60,8 +65,8 @@ public class NewsServiceImpl implements NewsService {
 
 	@Override
 	public void addNews(News news) throws ServiceException {
-		if (!NewsValidator.isValid(news)) {
-            throw new ServiceException("Некорректные данные новости");
+		if (!validator.isValid(news)) {
+            throw new ServiceException("Invalid news data.");
         }
         try {
             newsDao.addNews(news);
@@ -74,10 +79,10 @@ public class NewsServiceImpl implements NewsService {
 	@Override
 	public void updateNews(News news) throws ServiceException {
 		if (news.getId() <= 0) {
-            throw new ServiceException("ID новости должен быть установлен для обновления");
+            throw new ServiceException("News ID must be set for update.");
         }
-		if (!NewsValidator.isValid(news)) {
-            throw new ServiceException("Некорректные данные новости");
+		if (!validator.isValid(news)) {
+            throw new ServiceException("Invalid news data.");
         }
         try {
             newsDao.updateNews(news);
@@ -90,7 +95,7 @@ public class NewsServiceImpl implements NewsService {
 	@Override
 	public void deleteNews(int id) throws ServiceException {
 		 if (id <= 0) {
-	            throw new ServiceException("ID новости должен быть положительным");
+	            throw new ServiceException("News ID must be positive.");
 	        }
 	        try {
 	            newsDao.deleteNews(id);
@@ -120,7 +125,7 @@ public class NewsServiceImpl implements NewsService {
             return new Page<>(content, safePage, safeSize, totalItems);
 
         } catch (DaoException e) {
-            throw new ServiceException("Ошибка при получении новостей постранично", e);
+            throw new ServiceException("Error while retrieving paginated news", e);
         }
     }
 

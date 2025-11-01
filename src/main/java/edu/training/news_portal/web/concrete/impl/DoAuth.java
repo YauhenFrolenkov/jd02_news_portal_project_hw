@@ -8,7 +8,6 @@ import edu.training.news_portal.service.ServiceException;
 import edu.training.news_portal.service.ServiceProvider;
 import edu.training.news_portal.service.UserSecurity;
 import edu.training.news_portal.web.concrete.Command;
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

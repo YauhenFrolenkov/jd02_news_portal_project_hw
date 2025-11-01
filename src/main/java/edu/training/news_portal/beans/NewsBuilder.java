@@ -36,7 +36,6 @@ public class NewsBuilder {
     }
 
     public News build() {
-        // Возвращаем сразу объект News без id, id будет присвоен БД
-        return new News(title, brief, contentPath, publishDate, statusId);
+       return new News(title, brief, contentPath, publishDate, statusId);  // Возвращаем сразу объект News без id, id будет присвоен БД
     }
 }

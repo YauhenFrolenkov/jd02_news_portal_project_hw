@@ -45,7 +45,7 @@ public class DoEditNews implements Command{
         news.setId(newsId);
 
         try {
-            if (!NewsValidator.isValid(news)) {
+        	if (!NewsValidator.getInstance().isValid(news)) {
                 response.sendRedirect("NewsPortalController?command=page_edit_news&id=" + newsId + "&error=true");
                 return;
             }
