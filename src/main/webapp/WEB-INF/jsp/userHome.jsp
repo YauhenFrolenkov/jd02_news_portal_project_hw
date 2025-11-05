@@ -35,11 +35,11 @@
                 <c:if test="${not empty sessionScope.auth}">
                     <a href="NewsPortalController?command=page_user_home" class="btn btn-outline-light me-2">Мой кабинет</a>
                     <a href="NewsPortalController?command=page_add_news" class="btn btn-success me-2">Добавить новость</a>
-                    <a href="NewsPortalController?command=page_auth" class="btn btn-outline-light">Выйти</a>
+                    <a href="NewsPortalController?command=do_logout" class="btn btn-outline-light">Выйти</a>
                 </c:if>
 
                 <c:if test="${empty sessionScope.auth}">
-                    <a href="NewsPortalController?command=page_auth" class="btn btn-outline-light">Войти</a>
+                    <a href="NewsPortalController?command=do_auth" class="btn btn-outline-light">Войти</a>
                 </c:if>
             </div>
         </div>

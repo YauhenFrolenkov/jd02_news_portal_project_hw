@@ -12,7 +12,9 @@ public class RegistrationValidator {
     
     private static RegistrationValidator instance;
     
-    private RegistrationValidator() {}
+    private RegistrationValidator() {
+    	
+    }
     
     public static RegistrationValidator getInstance() {
         if (instance == null) {

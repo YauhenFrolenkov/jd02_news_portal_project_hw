@@ -24,7 +24,7 @@ public class CommandProvider {
 		commands.put(RequestPath.DO_ADD_NEWS, new DoAddNews());
 		commands.put(RequestPath.DO_EDIT_NEWS, new DoEditNews());
 		commands.put(RequestPath.DO_DELETE_NEWS, new DoDeleteNews());
-
+		commands.put(RequestPath.DO_LOGOUT, new DoLogout());
 	}
 	
 	public Command take(String path) {

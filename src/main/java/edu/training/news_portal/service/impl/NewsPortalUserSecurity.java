@@ -10,17 +10,14 @@ import edu.training.news_portal.dao.UserDao;
 import edu.training.news_portal.dao.util.UserReferenceData;
 import edu.training.news_portal.service.ServiceException;
 import edu.training.news_portal.service.UserSecurity;
-import edu.training.news_portal.util.NewsValidator;
 import edu.training.news_portal.util.RegistrationValidator;
+import edu.training.news_portal.util.ValidatorProvider;
 
 public class NewsPortalUserSecurity implements UserSecurity {
 
 	private final UserDao userDao = DaoProvider.getInstance().getUserDao();
-	private final RegistrationValidator validator;
+	private final RegistrationValidator validator = ValidatorProvider.getInstance().getRegistrationValidator();
 	
-	public NewsPortalUserSecurity(RegistrationValidator validator) {
-        this.validator = validator;       
-    }
 
 	@Override
 	public Optional<User> signIn(String email, String password) throws ServiceException {

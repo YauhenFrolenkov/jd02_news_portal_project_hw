@@ -18,16 +18,15 @@ public class ConnectionPoolListener implements ServletContextListener {
 
 	public void contextInitialized(ServletContextEvent sce) {
 		ServletContext context = sce.getServletContext();
+
 		try {
 
-			ConnectionPool.getFirstInstance("jdbc:mysql://localhost:3306/nova_news_6?useSSL=false", "root", "1234", 5);
+			ConnectionPool.getFirstInstance("jdbc:mysql://localhost:3306/nova_news_6?useSSL=false", "root", "1234", 5); 
 
 		} catch (SQLException | ClassNotFoundException e) {
 			String errorMessage = "Connection pool initialization error. " + e;
-			context.setAttribute("initError", errorMessage);
-			throw new DaoRuntimeException(errorMessage, e);
-
-		}
+			context.setAttribute("initializationError", errorMessage);  // Исключение не выбрасываем, AppInitializationFilter фильтр покажет страницу ошибок
+			}
 	}
 
 	public void contextDestroyed(ServletContextEvent sce) {

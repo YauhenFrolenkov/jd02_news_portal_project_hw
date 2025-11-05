@@ -18,6 +18,7 @@ public enum RequestPath {
 	
 	DO_AUTH, 
 	DO_REGISTRATION,
+	DO_LOGOUT,
 	NO_COMMAND
 
 }

@@ -15,9 +15,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @WebFilter("/*")
-public class InitErrorFilter implements Filter {
+public class AppInitializationFilter implements Filter {
 
-	public InitErrorFilter() {
+	public AppInitializationFilter() {
 		super();
 	}
 
@@ -33,13 +33,13 @@ public class InitErrorFilter implements Filter {
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
 		ServletContext context = httpRequest.getServletContext();
 
-		String initError = (String) context.getAttribute("initError");
+		String initializationError = (String) context.getAttribute("initializationError"); // Проверяем, была ли ошибка при инициализации приложения в ConnectionPoolListener
 
-		if (initError != null) {
+		if (initializationError != null) {
+			System.out.println("Фильтр перехватил ошибку инициализации: " + initializationError);
+			request.setAttribute("errorMessage", initializationError);  // Если была ошибка при старте приложения, показываем страницу ошибок
 			
-			request.setAttribute("errorMessage", initError);
-			
-			RequestDispatcher dispatcher = request.getRequestDispatcher("/error.jsp");
+			RequestDispatcher dispatcher = request.getRequestDispatcher("error.jsp");
 			dispatcher.forward(request, response);
 			return; 
 		}

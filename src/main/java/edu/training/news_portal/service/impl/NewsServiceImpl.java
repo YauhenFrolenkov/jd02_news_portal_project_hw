@@ -11,21 +11,18 @@ import edu.training.news_portal.dao.NewsDao;
 import edu.training.news_portal.service.NewsService;
 import edu.training.news_portal.service.ServiceException;
 import edu.training.news_portal.util.NewsValidator;
+import edu.training.news_portal.util.ValidatorProvider;
 
 public class NewsServiceImpl implements NewsService {
 	
 	private final NewsDao newsDao = DaoProvider.getInstance().getNewsDao();
-	private final NewsValidator validator;
+	private final NewsValidator validator = ValidatorProvider.getInstance().getNewsValidator();
 	
 	private final int DEFAULT_SIZE = 9;
     private final int MAX_SIZE = 50;
     private final int MAX_TOP_NEWS = 10;
     
-    public NewsServiceImpl(NewsValidator validator) {
-        this.validator = validator;       
-    }
-
-	@Override
+    @Override
 	public List<News> takeTopNews(int count) throws ServiceException {
 		
 		 if (count <= 0 || count > MAX_TOP_NEWS) {
