@@ -2,7 +2,6 @@ package edu.training.news_portal.web.listeners;
 
 import java.sql.SQLException;
 
-import edu.training.news_portal.dao.DaoRuntimeException;
 import edu.training.news_portal.dao.pool.ConnectionPool;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
@@ -24,7 +23,7 @@ public class ConnectionPoolListener implements ServletContextListener {
 			ConnectionPool.getFirstInstance("jdbc:mysql://localhost:3306/nova_news_6?useSSL=false", "root", "1234", 5); 
 
 		} catch (SQLException | ClassNotFoundException e) {
-			String errorMessage = "Connection pool initialization error. " + e;
+			String errorMessage = "Connection pool initialization error. ";
 			context.setAttribute("initializationError", errorMessage);  // Исключение не выбрасываем, AppInitializationFilter фильтр покажет страницу ошибок
 			}
 	}
@@ -33,7 +32,7 @@ public class ConnectionPoolListener implements ServletContextListener {
 		try {
 			ConnectionPool.getInstance().close();
 		} catch (SQLException e) {
-			throw new DaoRuntimeException("Error while closing the connection pool.", e);
+			throw new RuntimeException("Error while closing the connection pool.");
 
 		}
 	}

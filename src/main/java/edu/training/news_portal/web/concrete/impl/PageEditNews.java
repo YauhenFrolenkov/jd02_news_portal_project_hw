@@ -24,15 +24,9 @@ public class PageEditNews implements Command {
 			return;
 		}
 
-		int newsId;
 		try {
-			newsId = Integer.parseInt(idParam);
-		} catch (NumberFormatException e) {
-			response.sendRedirect("NewsPortalController?command=page_news_list&error=true");
-			return;
-		}
+			int newsId = Integer.parseInt(idParam);
 
-		try {
 			Optional<News> newsOpt = newsService.findById(newsId);
 			if (newsOpt.isEmpty()) {
 				response.sendRedirect("NewsPortalController?command=page_news_list&error=true");
@@ -42,7 +36,7 @@ public class PageEditNews implements Command {
 			request.setAttribute("news", newsOpt.get());
 			request.getRequestDispatcher("WEB-INF/jsp/editNews.jsp").forward(request, response);
 
-		} catch (ServiceException e) {
+		} catch (NumberFormatException | ServiceException e) {
 			response.sendRedirect("NewsPortalController?command=page_news_list&error=true");
 		}
 

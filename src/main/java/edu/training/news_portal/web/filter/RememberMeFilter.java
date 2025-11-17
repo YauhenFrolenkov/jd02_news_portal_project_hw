@@ -17,7 +17,6 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @WebFilter("/NewsPortalController")
@@ -35,10 +34,10 @@ public class RememberMeFilter extends HttpFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 
-		HttpSession session = ((HttpServletRequest)request).getSession(false);
+		HttpSession session = ((HttpServletRequest)request).getSession(false);		
 	    	    
 	    if (session != null && session.getAttribute("auth") != null) { // Если пользователь уже авторизован — пропускаем 																	// дальше
-			chain.doFilter(request, response);
+	    	chain.doFilter(request, response);
 			return;
 		}
 		
@@ -53,7 +52,7 @@ public class RememberMeFilter extends HttpFilter implements Filter {
 			chain.doFilter(request, response);
 			return;
 		}
-		
+				
 		try { 
 			restoreUser(((HttpServletRequest)request), rememberMeCookie.getValue()); // Восстанавливаем пользователя по cookie
 		} catch (ServiceException e) {
@@ -78,10 +77,11 @@ public class RememberMeFilter extends HttpFilter implements Filter {
 
  
     private void restoreUser(HttpServletRequest request, String email) throws ServiceException { // Восстановление пользователя и установка в сессию
-        Optional<User> maybeUser = security.findByEmail(email);
+    	Optional<User> maybeUser = security.findByEmail(email);
         if (maybeUser.isPresent()) {
             HttpSession session = request.getSession(true);
             session.setAttribute("auth", maybeUser.get());
+           
         }
     }
     

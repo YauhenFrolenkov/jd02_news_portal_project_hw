@@ -17,7 +17,6 @@ public class NewsPortalUserSecurity implements UserSecurity {
 
 	private final UserDao userDao = DaoProvider.getInstance().getUserDao();
 	private final RegistrationValidator validator = ValidatorProvider.getInstance().getRegistrationValidator();
-	
 
 	@Override
 	public Optional<User> signIn(String email, String password) throws ServiceException {
@@ -31,7 +30,6 @@ public class NewsPortalUserSecurity implements UserSecurity {
 
 			User user = maybeUser.orElseThrow(() -> new ServiceException("User not found"));
 
-			
 			if (user.getStatusId() == UserReferenceData.USER_STATUS_BLOCKED_ID) {
 				throw new ServiceException("User is blocked");
 			}
@@ -58,17 +56,59 @@ public class NewsPortalUserSecurity implements UserSecurity {
 			throw new ServiceException(e);
 		}
 	}
-	
+
 	@Override
 	public Optional<User> findByEmail(String email) throws ServiceException {
-	    if (email == null || email.isBlank()) {
-	        return Optional.empty();
-	    }
+		if (email == null || email.isBlank()) {
+			return Optional.empty();
+		}
+		try {
+			return userDao.findByEmail(email);
+		} catch (DaoException e) {
+			throw new ServiceException("Error searching for user by email", e);
+		}
+	}
+	
+	@Override
+	public Optional<User> findById(int userId) throws ServiceException {
 	    try {
-	        return userDao.findByEmail(email); 
+	    return userDao.findById(userId);
 	    } catch (DaoException e) {
-	        throw new ServiceException("Error searching for user by email", e);
-	    }
+			throw new ServiceException("Error searching for user by id", e);
+		}
 	}
 
+	@Override
+	public void promoteFromUserToReporter(int userId) throws ServiceException {
+		if (userId <= 0) {
+			throw new ServiceException("User ID must be positive.");
+		}
+
+		try {
+			userDao.promoteFromUserToReporter(userId);
+		} catch (DaoException e) {
+			throw new ServiceException("Failed to promote user to reporter", e);
+		}
+
+	}
+
+	@Override
+	public boolean isRoleAdmin(int userId) throws ServiceException {
+		try {
+			return userDao.isRoleAdmin(userId);
+		} catch (DaoException e) {
+			throw new ServiceException("Error checking admin role", e);
+		}
+	}
+
+	@Override
+	public boolean isRoleReporter(int userId, int newsId) throws ServiceException {
+		try {
+			return userDao.isRoleReporter(userId, newsId);
+		} catch (DaoException e) {
+			throw new ServiceException("Error checking reporter role", e);
+		}
+	}
+	
+	
 }

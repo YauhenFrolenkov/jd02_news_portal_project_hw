@@ -16,7 +16,7 @@ import edu.training.news_portal.util.ValidatorProvider;
 public class NewsServiceImpl implements NewsService {
 	
 	private final NewsDao newsDao = DaoProvider.getInstance().getNewsDao();
-	private final NewsValidator validator = ValidatorProvider.getInstance().getNewsValidator();
+	private final NewsValidator validator = ValidatorProvider.getInstance().getNewsValidator();		
 	
 	private final int DEFAULT_SIZE = 9;
     private final int MAX_SIZE = 50;
@@ -66,7 +66,7 @@ public class NewsServiceImpl implements NewsService {
             throw new ServiceException("Invalid news data.");
         }
         try {
-            newsDao.addNews(news);
+            newsDao.addNews(news);                       
         } catch (DaoException e) {
             throw new ServiceException(e);
         }
@@ -94,7 +94,7 @@ public class NewsServiceImpl implements NewsService {
 		 if (id <= 0) {
 	            throw new ServiceException("News ID must be positive.");
 	        }
-	        try {
+	        try {	        	
 	            newsDao.deleteNews(id);
 	        } catch (DaoException e) {
 	            throw new ServiceException(e);

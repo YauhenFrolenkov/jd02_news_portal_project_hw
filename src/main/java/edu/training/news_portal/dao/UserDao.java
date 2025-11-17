@@ -8,12 +8,13 @@ import edu.training.news_portal.beans.User;
 public interface UserDao {
 	
 	Optional<User> checkControl(String email, String password) throws DaoException;
-	
 	boolean registration(RegistrationInfo regInfo) throws DaoException;
-
 	Optional<User> findByEmail(String email) throws DaoException;
+	Optional<User> findById(int userId) throws DaoException;
+	void promoteFromUserToReporter(int userId) throws DaoException;
+	boolean isRoleAdmin(int userId) throws DaoException;
+	boolean isRoleReporter(int userId, int newsId) throws DaoException;
 	
-		
 	}
 
 

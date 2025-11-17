@@ -64,7 +64,25 @@ public class DBUserDao implements UserDao {
 			ps.setString(1, email);
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
-					mapRowToUser(rs);
+					return mapRowToUser(rs);
+				}
+				return Optional.empty();
+			}
+		} catch (SQLException e) {
+			throw new DaoException(e);
+		}
+	}
+	
+	private static final String FIND_BY_ID_SQL = "SELECT u.id, u.email, u.roles_id, u.user_status_id, d.name, d.surname FROM users u JOIN user_details d ON u.id = d.users_id WHERE u.id = ?";
+	
+	@Override
+	public Optional<User> findById(int userId) throws DaoException {
+		try (Connection connection = pool.takeConnection();
+				PreparedStatement ps = connection.prepareStatement(FIND_BY_ID_SQL)) {
+			ps.setInt(1, userId);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return mapRowToUser(rs);
 				}
 				return Optional.empty();
 			}
@@ -75,36 +93,98 @@ public class DBUserDao implements UserDao {
 
 	@Override
 	public boolean registration(RegistrationInfo regInfo) throws DaoException {
-	    Connection connection = null;
+		Connection connection = null;
 
-	    try {
-	        connection = pool.takeConnection();
-	        connection.setAutoCommit(false);
-	       
-	        String hashedPassword = hashPassword(regInfo.getPassword());  // 1. Хэшируем пароль
+		try {
+			connection = pool.takeConnection();
+			connection.setAutoCommit(false);
 
-	        int userId = insertUser(connection, regInfo, hashedPassword); // 2. Вставляем пользователя и получаем ID
+			String hashedPassword = hashPassword(regInfo.getPassword()); // 1. Хэшируем пароль
 
-	        insertUserDetails(connection, userId, regInfo); // 3. Вставляем детали пользователя
+			int userId = insertUser(connection, regInfo, hashedPassword); // 2. Вставляем пользователя и получаем ID
 
-	        connection.commit();  // 4. Фиксируем транзакцию
-	       
-	        return true;
+			insertUserDetails(connection, userId, regInfo); // 3. Вставляем детали пользователя
 
-	    } catch (SQLException e) {
-	        rollbackQuietly(connection);
-	         throw new DaoException("Error during user registration", e);
+			connection.commit(); // 4. Фиксируем транзакцию
 
-	    } finally {
-	        if (connection != null) {
-	            try {
-	                connection.setAutoCommit(true);
-	                connection.close(); // Соединение закрыто и autoCommit восстановлен	                
-	            } catch (SQLException e) {
-	                throw new DaoException("Error while closing the connection", e);
-	            }
-	        }
-	    }
+			return true;
+
+		} catch (SQLException e) {
+			rollbackQuietly(connection);
+			throw new DaoException("Error during user registration", e);
+
+		} finally {
+			if (connection != null) {
+				try {
+					connection.setAutoCommit(true);
+					connection.close(); // Соединение закрыто и autoCommit восстановлен
+				} catch (SQLException e) {
+					throw new DaoException("Error while closing the connection", e);
+				}
+			}
+		}
+	}
+
+	private static final String PROMOTE_TO_REPORTER_SQL = "UPDATE users SET roles_id = ? WHERE id = ?";
+
+	@Override
+	public void promoteFromUserToReporter(int userId) throws DaoException {
+		if (userId <= 0) {
+			throw new DaoException("Invalid user ID: must be positive.");
+		}
+
+		try (Connection connection = pool.takeConnection();
+				PreparedStatement ps = connection.prepareStatement(PROMOTE_TO_REPORTER_SQL)) {
+
+			ps.setInt(1, UserReferenceData.ROLE_REPORTER_ID);
+			ps.setInt(2, userId);
+
+			int updatedRows = ps.executeUpdate();
+			if (updatedRows == 0) {
+				throw new DaoException("No user found with id = " + userId);
+			}
+
+		} catch (SQLException e) {
+			throw new DaoException("Error promoting user to reporter", e);
+		}
+	}
+
+	private static final String CHECK_ADMIN_SQL = "SELECT 1 FROM users WHERE id = ? AND roles_id = ?";
+
+	@Override
+	public boolean isRoleAdmin(int userId) throws DaoException {
+		try (Connection con = pool.takeConnection(); PreparedStatement ps = con.prepareStatement(CHECK_ADMIN_SQL)) {
+
+			ps.setInt(1, userId);
+			ps.setInt(2, UserReferenceData.ROLE_ADMIN_ID);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+
+		} catch (SQLException e) {
+			throw new DaoException("Error checking if user is admin", e);
+		}
+	}
+
+	private static final String CHECK_REPORTER_SQL = "SELECT 1 FROM authors a JOIN users u ON a.users_id = u.id WHERE a.news_idnews = ? AND u.id = ? AND u.roles_id = ?";
+
+	@Override
+	public boolean isRoleReporter(int userId, int newsId) throws DaoException {
+		try (Connection con = pool.takeConnection(); PreparedStatement ps = con.prepareStatement(CHECK_REPORTER_SQL)) {
+
+			ps.setInt(1, newsId);
+			ps.setInt(2, userId);
+			ps.setInt(3, UserReferenceData.ROLE_REPORTER_ID);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+
+		} catch (SQLException e) {
+			throw new DaoException("Error checking if user is reporter for news", e);
+		}
+
 	}
 
 	private String hashPassword(String password) {
@@ -114,8 +194,10 @@ public class DBUserDao implements UserDao {
 
 	private static final String INSERT_USER_SQL = "INSERT INTO users (email, password, roles_id, user_status_id, date_registration) VALUES (?, ?, ?, ?, ?)";
 
-	private int insertUser(Connection connection, RegistrationInfo regInfo, String hashedPassword) throws SQLException, DaoException {
-		try (PreparedStatement ps = connection.prepareStatement(INSERT_USER_SQL, PreparedStatement.RETURN_GENERATED_KEYS)) {
+	private int insertUser(Connection connection, RegistrationInfo regInfo, String hashedPassword)
+			throws SQLException, DaoException {
+		try (PreparedStatement ps = connection.prepareStatement(INSERT_USER_SQL,
+				PreparedStatement.RETURN_GENERATED_KEYS)) {
 
 			ps.setString(1, regInfo.getEmail());
 			ps.setString(2, hashedPassword);
@@ -148,15 +230,15 @@ public class DBUserDao implements UserDao {
 			ps.executeUpdate();
 		}
 	}
-	
+
 	private void rollbackQuietly(Connection connection) throws DaoException {
-	    if (connection != null) {
-	        try {
-	            connection.rollback();	            
-	        } catch (SQLException ex) {
-	        	throw new DaoException("Transaction rollback error", ex);
-	        }
-	    }
+		if (connection != null) {
+			try {
+				connection.rollback();
+			} catch (SQLException ex) {
+				throw new DaoException("Transaction rollback error", ex);
+			}
+		}
 	}
 
 	private Optional<User> mapRowToUser(ResultSet rs) throws SQLException {
@@ -170,4 +252,5 @@ public class DBUserDao implements UserDao {
 		return Optional.of(user);
 	}
 
+	
 }

@@ -21,8 +21,7 @@ public class DoLogout implements Command {
 		Cookie cookie = new Cookie("remember-me", ""); // Удаляем cookie "remember-me"
 		cookie.setMaxAge(0);
 		cookie.setPath("/");
-		response.addCookie(cookie);
-		System.out.println("[RememberMeFilter] remember-me cookie removed.");
+		response.addCookie(cookie);		
 
 		response.sendRedirect("NewsPortalController?command=page_main");
 

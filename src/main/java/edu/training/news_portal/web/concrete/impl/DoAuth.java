@@ -42,8 +42,7 @@ public class DoAuth implements Command {
 				Cookie cookie = new Cookie("remember-me", user.getEmail()); // используем email!
 				cookie.setMaxAge(60 * 60 * 24 * 30); // срок жизни 30 дней 
 				cookie.setPath("/"); // доступ к Cookie во всем приложении
-				response.addCookie(cookie);
-				System.out.println("[DoAuth] Cookie set: " + cookie.getName() + " = " + cookie.getValue());
+				response.addCookie(cookie);				
 			}
 
 			response.sendRedirect("NewsPortalController?command=page_user_home");

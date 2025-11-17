@@ -11,6 +11,7 @@ import edu.training.news_portal.dao.pool.ConnectionPool;
 public class UserReferenceData {
 
 	public static final int ROLE_USER_ID;
+	public static final int ROLE_REPORTER_ID;
 	public static final int ROLE_ADMIN_ID;
 	public static final int USER_STATUS_ACTIVE_ID;
 	public static final int USER_STATUS_BLOCKED_ID;
@@ -23,6 +24,7 @@ public class UserReferenceData {
 		try (Connection connection = ConnectionPool.getInstance().takeConnection()) {
 
 			ROLE_USER_ID = getId(connection, "SELECT id FROM roles WHERE name = 'user'");
+			ROLE_REPORTER_ID = getId(connection, "SELECT id FROM roles WHERE name = 'reporter'");
 			ROLE_ADMIN_ID = getId(connection, "SELECT id FROM roles WHERE name = 'admin'");
 			USER_STATUS_ACTIVE_ID = getId(connection, "SELECT id FROM user_status WHERE user_status = 'active'");
 			USER_STATUS_BLOCKED_ID = getId(connection, "SELECT id FROM user_status WHERE user_status = 'blocked'");

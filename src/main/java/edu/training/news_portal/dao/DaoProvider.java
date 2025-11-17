@@ -1,5 +1,6 @@
 package edu.training.news_portal.dao;
 
+import edu.training.news_portal.dao.impl.DBAuthorsDao;
 import edu.training.news_portal.dao.impl.DBNewsDao;
 import edu.training.news_portal.dao.impl.DBUserDao;
 
@@ -9,6 +10,7 @@ public final class DaoProvider {
 
 	private final NewsDao newsDao = new DBNewsDao();
 	private final UserDao userDao = new DBUserDao();
+	private final AuthorsDao authorsDao = new DBAuthorsDao();
 
 	private DaoProvider() {
 		
@@ -20,6 +22,10 @@ public final class DaoProvider {
 
 	public UserDao getUserDao() {
 		return userDao;
+	}
+	
+	public AuthorsDao getAuthorsDao() {
+		return authorsDao;
 	}
 
 	public static DaoProvider getInstance() {

@@ -3,10 +3,6 @@ package edu.training.news_portal.dao.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -15,9 +11,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import edu.training.news_portal.beans.News;
 import edu.training.news_portal.dao.DaoException;
 import edu.training.news_portal.dao.DaoRuntimeException;
@@ -202,6 +195,7 @@ public class DBNewsDao implements NewsDao {
 					throw new DaoException("Failed to update news — no rows affected.");
 				}
 			}
+		    con.commit();
 
 		} catch (SQLException e) {
 			rollbackQuietly(con);
